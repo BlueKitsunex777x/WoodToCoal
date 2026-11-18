@@ -1,8 +1,0 @@
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/bin/Release/Woodtocoal.deps.json
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/bin/Release/Woodtocoal.dll
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/obj/Release/Woodtocoal.csproj.AssemblyReference.cache
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/obj/Release/Woodtocoal.GeneratedMSBuildEditorConfig.editorconfig
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/obj/Release/Woodtocoal.AssemblyInfoInputs.cache
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/obj/Release/Woodtocoal.AssemblyInfo.cs
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/obj/Release/Woodtocoal.csproj.CoreCompileInputs.cache
-/home/sapphire/.config/BlockStoryModKit/Workspace/mods/Woodtocoal/obj/Release/Woodtocoal.dll
