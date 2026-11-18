@@ -151,7 +151,7 @@ public class WoodToCoalPlugin : BaseUnityPlugin
                             if (grid[x, y] != null && grid[x, y].name != "Energy") { L.Log($"slot {x}, {y}: {grid[x, y].name} -> {input.name}"); grid[x, y] = input; }
                             else if (grid[x, y] != null) L.Log($"slot {x}, {y}: fuel, left alone");
                     
-                    result.count = WoodToCoalPlugin.CoalOutput;
+                    result.count = WoodToCoalPlugin._savedCoalOutput;
                     var recipe = new Recipe(grid) { result = result, name = _recipeName, custom = true, minutes = template.minutes, };
                     recipe.result.count = _count;
 
@@ -179,10 +179,10 @@ public class WoodToCoalPlugin : BaseUnityPlugin
 
         public static void Refresh()
         {
-            L.Log($"refresh: {_modRecipes.Count} recipe(s), hidden = {!WoodToCoalPlugin.Enabled}");
+            L.Log($"refresh: {_modRecipes.Count} recipe(s), hidden = {!WoodToCoalPlugin._savedEnabled}");
             foreach (Recipe recipe in _modRecipes)
             {
-                recipe.hidden = !WoodToCoalPlugin.Enabled;
+                recipe.hidden = !WoodToCoalPlugin._savedEnabled;
                 if (recipe.result != null) L.Log($"input: {recipe.ingredients} output: {recipe.result} count: {recipe.result.count}");
             }
         }
