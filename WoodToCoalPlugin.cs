@@ -25,10 +25,12 @@ public class WoodToCoalPlugin : BaseUnityPlugin
         try { new Harmony("com.BlueKitsunex777x.woodtocoal").PatchAll(); L.Info("loaded"); }
         catch (Exception e) { L.Err("PatchAll", e); }
         L.Log("patches in: AnyLogPatch (RecipeMatcher.search), DoubleSmeltFix (CraftingOutputSlotSpeedUp.OnComplete)");
+
+        BSItems.WhenReady(() => Items.CreateItem("Charcoal", "Coal Ore", Art.Icon("charcoal")));
         
         ModRegistry.Register(new ModInfo
         {
-            Name = "WoodToCoal",
+            Name = "Wood To Coal",
             Description = "Can smelt logs into coal",
             GetEnabled = () => Enabled,
             SetEnabled = on =>
@@ -41,6 +43,7 @@ public class WoodToCoalPlugin : BaseUnityPlugin
             },
             Config = new ModConfig()
                 .Stepper("Coal Output", 2, 10, () => _savedCoalOutput, SetCoalOutput, 1, "Amount of coal you get from smelting wood in the furnace")
+                .Button("Creative worlds", "Give Charcoal", Give, "Gives 100 Charcoal")
         });
         L.Log("added to the mods menu, now waiting for a world to load");
     }
@@ -57,20 +60,19 @@ public class WoodToCoalPlugin : BaseUnityPlugin
         // so just check every 3 sec. unscaledTime so it still runs while paused
         if (Time.unscaledTime < _next) return;
         _next = Time.unscaledTime + 3f;
-        ModRecipes.AddFurnaceRecipe("WoodToCoal", "Bark", "Coal Ore", WoodToCoalPlugin._savedCoalOutput);
+        ModRecipes.AddFurnaceRecipe("Wood To Coal", "Bark", "Coal Ore", WoodToCoalPlugin._savedCoalOutput);
     }
 
     // Saves any edit made to mods config while in-game?
     private static void ApplySaved()
     {
-        if (BSWorld.InWorld)
-        {
-            L.Info("saved, used from the next world load");
-            return;
-        }
+        // if (BSWorld.InWorld)
+        // {
+        //     L.Info("saved, used from the next world load");
+        //     return;
+        // }
         Enabled = _savedEnabled;
         CoalOutput = _savedCoalOutput;
-        ModRecipes.Refresh();
     }
 
     private static void SetCoalOutput(int value)
@@ -78,7 +80,16 @@ public class WoodToCoalPlugin : BaseUnityPlugin
         _savedCoalOutput = value;
         PlayerPrefs.SetInt("WoodToCoal_CoalOutput", value);
         PlayerPrefs.Save();
+        ModRecipes.Refresh("Wood To Coal");
         ApplySaved();
+    }
+
+    private static void Give()
+    {
+        if(!BSWorld.InWorld) { L.Info("Not in a creative world"); return; }
+
+        bool flag = BSItems.Give("Charcoal", 100);
+        L.Info($"Give ok? {flag}");
     }
 
     internal static class ModRecipes
@@ -177,13 +188,14 @@ public class WoodToCoalPlugin : BaseUnityPlugin
             catch (Exception e) { L.Err($"AddFurnaceRecipe", e); }
         }
 
-        public static void Refresh()
+        public static void Refresh(string _recipeName = null)
         {
             L.Log($"refresh: {_modRecipes.Count} recipe(s), hidden = {!WoodToCoalPlugin._savedEnabled}");
             foreach (Recipe recipe in _modRecipes)
             {
                 recipe.hidden = !WoodToCoalPlugin._savedEnabled;
-                if (recipe.result != null) L.Log($"input: {recipe.ingredients} output: {recipe.result} count: {recipe.result.count}");
+                if (recipe.result != null) L.Log($"refresh: input: {recipe.ingredients} output: {recipe.result} count: {recipe.result.count}");
+                if (recipe.name == _recipeName) recipe.result.count = WoodToCoalPlugin._savedCoalOutput;
             }
         }
     }
