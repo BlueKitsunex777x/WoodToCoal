@@ -5,16 +5,16 @@ using BlockStoryCore;
 using HarmonyLib;
 using UnityEngine;
 
-// Can smelt logs into coal
-[BepInPlugin("com.BlueKitsunex777x.woodtocoal", "Wood To Coal", "1.0.0")]
+// Can smelt logs into charcoal
+[BepInPlugin("com.BlueKitsunex777x.woodtocharcoal", "Wood To Charcoal", "1.0.0")]
 [BepInDependency(Core.Guid)]               // hard dependency on the toolbox; won't load without it
-public class WoodToCoalPlugin : BaseUnityPlugin
+public class WoodToCharcoalPlugin : BaseUnityPlugin
 {
-    public static bool Enabled = PlayerPrefs.GetInt("WoodToCoal_Enabled", 1) != 0;
-    public static int CoalOutput = PlayerPrefs.GetInt("WoodToCoal_CoalOutput", 4);
+    public static bool Enabled = PlayerPrefs.GetInt("WoodToCharcoal_Enabled", 1) != 0;
+    public static int CharcoalOutput = PlayerPrefs.GetInt("WoodToCharcoal_CharcoalOutput", 4);
 
     public static bool _savedEnabled = Enabled;
-    public static int _savedCoalOutput = CoalOutput;
+    public static int _savedCharcoalOutput = CharcoalOutput;
     private bool _wasInWorld;
     private float _next;
     
@@ -22,7 +22,7 @@ public class WoodToCoalPlugin : BaseUnityPlugin
     {
         if (!BSMKCheck.Passed(this)) return;   // the BSMK check, keep it first. see BSMKCheck.cs
 
-        try { new Harmony("com.BlueKitsunex777x.woodtocoal").PatchAll(); L.Info("loaded"); }
+        try { new Harmony("com.BlueKitsunex777x.woodtocharcoal").PatchAll(); L.Info("loaded"); }
         catch (Exception e) { L.Err("PatchAll", e); }
         L.Log("patches in: AnyLogPatch (RecipeMatcher.search), DoubleSmeltFix (CraftingOutputSlotSpeedUp.OnComplete)");
 
@@ -30,19 +30,19 @@ public class WoodToCoalPlugin : BaseUnityPlugin
         
         ModRegistry.Register(new ModInfo
         {
-            Name = "Wood To Coal",
-            Description = "Can smelt logs into coal",
+            Name = "Wood To Charcoal",
+            Description = "Can smelt logs into charcoal",
             GetEnabled = () => Enabled,
             SetEnabled = on =>
             {
                 _savedEnabled = on;
-                PlayerPrefs.SetInt("WoodToCoal_Enabled", on ? 1 : 0);
+                PlayerPrefs.SetInt("WoodToCharcoal_Enabled", on ? 1 : 0);
                 PlayerPrefs.Save();
                 ApplySaved();
                 L.Info($"enabled = {on}");
             },
             Config = new ModConfig()
-                .Stepper("Coal Output", 2, 10, () => _savedCoalOutput, SetCoalOutput, 1, "Amount of coal you get from smelting wood in the furnace")
+                .Stepper("Coal Output", 2, 10, () => _savedCharcoalOutput, SetCharcoalOutput, 1, "Amount of charcoal you get from smelting wood in the furnace")
                 .Button("Creative worlds", "Give Charcoal", Give, "Gives 100 Charcoal")
         });
         L.Log("added to the mods menu, now waiting for a world to load");
@@ -60,7 +60,7 @@ public class WoodToCoalPlugin : BaseUnityPlugin
         // so just check every 3 sec. unscaledTime so it still runs while paused
         if (Time.unscaledTime < _next) return;
         _next = Time.unscaledTime + 3f;
-        ModRecipes.AddFurnaceRecipe("Wood To Coal", "Bark", "Coal Ore", WoodToCoalPlugin._savedCoalOutput);
+        ModRecipes.AddFurnaceRecipe("Charcoal", "Bark", "Charcoal", WoodToCharcoalPlugin._savedCharcoalOutput);
     }
 
     // Saves any edit made to mods config while in-game?
@@ -72,13 +72,13 @@ public class WoodToCoalPlugin : BaseUnityPlugin
         //     return;
         // }
         Enabled = _savedEnabled;
-        CoalOutput = _savedCoalOutput;
+        CharcoalOutput = _savedCharcoalOutput;
     }
 
-    private static void SetCoalOutput(int value)
+    private static void SetCharcoalOutput(int value)
     {
-        _savedCoalOutput = value;
-        PlayerPrefs.SetInt("WoodToCoal_CoalOutput", value);
+        _savedCharcoalOutput = value;
+        PlayerPrefs.SetInt("WoodToCharcoal_CharcoalOutput", value);
         PlayerPrefs.Save();
         ModRecipes.Refresh("Wood To Coal");
         ApplySaved();
@@ -148,7 +148,7 @@ public class WoodToCoalPlugin : BaseUnityPlugin
                 _modRecipes.Clear();
                 InvGameItem input = InvDatabase.CreateItem(_input, 0, 1);
                 InvGameItem result = InvDatabase.CreateItem(_output, 0, 1);
-                L.Log($"item: input = {input?.name ?? "NULL"}, coal = {result?.name ?? "NULL"}");
+                L.Log($"item: input = {input?.name ?? "NULL"}, charcoal = {result?.name ?? "NULL"}");
                 
                 if (input == null || input.baseItem == null || result == null) { L.Log($"item name is wrong, giving up"); return; }
                 Recipe had = recipeManager.recipeList.Find(recipe => recipe != null && recipe.name == _recipeName);
@@ -162,7 +162,7 @@ public class WoodToCoalPlugin : BaseUnityPlugin
                             if (grid[x, y] != null && grid[x, y].name != "Energy") { L.Log($"slot {x}, {y}: {grid[x, y].name} -> {input.name}"); grid[x, y] = input; }
                             else if (grid[x, y] != null) L.Log($"slot {x}, {y}: fuel, left alone");
                     
-                    result.count = WoodToCoalPlugin._savedCoalOutput;
+                    result.count = WoodToCharcoalPlugin._savedCharcoalOutput;
                     var recipe = new Recipe(grid) { result = result, name = _recipeName, custom = true, minutes = template.minutes, };
                     recipe.result.count = _count;
 
@@ -190,12 +190,12 @@ public class WoodToCoalPlugin : BaseUnityPlugin
 
         public static void Refresh(string _recipeName = null)
         {
-            L.Log($"refresh: {_modRecipes.Count} recipe(s), hidden = {!WoodToCoalPlugin._savedEnabled}");
+            L.Log($"refresh: {_modRecipes.Count} recipe(s), hidden = {!WoodToCharcoalPlugin._savedEnabled}");
             foreach (Recipe recipe in _modRecipes)
             {
-                recipe.hidden = !WoodToCoalPlugin._savedEnabled;
+                recipe.hidden = !WoodToCharcoalPlugin._savedEnabled;
                 if (recipe.result != null) L.Log($"refresh: input: {recipe.ingredients} output: {recipe.result} count: {recipe.result.count}");
-                if (recipe.name == _recipeName) recipe.result.count = WoodToCoalPlugin._savedCoalOutput;
+                if (recipe.name == _recipeName) recipe.result.count = WoodToCharcoalPlugin._savedCharcoalOutput;
             }
         }
     }
